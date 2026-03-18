@@ -12,9 +12,9 @@ jobs:
       id-token: write
     environment: npm
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: pnpm
@@ -25,7 +25,7 @@ jobs:
 
       # Publish in dependency order: sdk first, then adapters
       - name: Publish @ambosstech/lightning-mpp-sdk
-        uses: JS-DevTools/npm-publish@v3
+        uses: JS-DevTools/npm-publish@v4
         with:
           package: packages/sdk/package.json
           provenance: true
@@ -33,7 +33,7 @@ jobs:
           strategy: upgrade
 
       - name: Publish @ambosstech/lightning-mpp-adapter-lnd
-        uses: JS-DevTools/npm-publish@v3
+        uses: JS-DevTools/npm-publish@v4
         with:
           package: packages/adapter-lnd/package.json
           provenance: true
@@ -41,7 +41,7 @@ jobs:
           strategy: upgrade
 
       - name: Publish @ambosstech/lightning-mpp-adapter-mock
-        uses: JS-DevTools/npm-publish@v3
+        uses: JS-DevTools/npm-publish@v4
         with:
           package: packages/adapter-mock/package.json
           provenance: true
