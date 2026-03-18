@@ -20,7 +20,7 @@ describe("MockLightningProvider", () => {
     });
     const { preimage } = await provider.payInvoice({ bolt11 });
 
-    expect(await verifyPreimage(preimage, paymentHash)).toBe(true);
+    expect(verifyPreimage(preimage, paymentHash)).toBe(true);
   });
 
   it("settles invoices on pay when autoSettle is true", async () => {

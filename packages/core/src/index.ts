@@ -21,7 +21,7 @@ export {
 } from "./errors.js";
 export type { LightningErrorCode } from "./errors.js";
 
-// Preimage
+// Preimage & encoding
 export {
   base64ToHex,
   bytesToHex,
@@ -30,21 +30,38 @@ export {
   verifyPreimage,
 } from "./preimage.js";
 
+// Store
+export { createMemoryStore } from "./store.js";
+export type { KeyValueStore } from "./store.js";
+
 // Price Oracle
 export type { PriceOracle } from "./price-oracle.js";
 
-// Methods
+// Methods — charge
 export {
   lightningCharge,
   lightningChargeClient,
   lightningChargeServer,
 } from "./methods/index.js";
+export type { LightningChargeClientProgress } from "./methods/index.js";
+
+// Methods — session
+export {
+  lightningSession,
+  lightningSessionClient,
+  lightningSessionServer,
+} from "./methods/index.js";
+export type { LightningSessionClientProgress } from "./methods/index.js";
+
+// Method types
 export type {
   LightningChallengeRequest,
   LightningCredentialPayload,
+  LightningSessionChallengeRequest,
+  LightningSessionCredentialPayload,
 } from "./methods/index.js";
 
-// Session
+// Session state manager (low-level)
 export { SessionStateManager } from "./session/index.js";
 export type {
   SessionDeduction,

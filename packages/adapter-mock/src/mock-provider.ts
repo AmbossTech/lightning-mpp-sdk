@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import type {
   CreateInvoiceParams,
   CreateInvoiceResult,
@@ -10,7 +11,6 @@ import type {
 import {
   InvoiceExpiredError,
   RouteNotFoundError,
-  bytesToHex,
 } from "@ambosstech/lightning-mpp-core";
 
 export interface MockProviderOptions {
@@ -46,12 +46,13 @@ export class MockLightningProvider implements LightningProvider {
     params: CreateInvoiceParams,
   ): Promise<CreateInvoiceResult> {
     this.counter++;
-    const preimageBytes = new Uint8Array(32);
-    new DataView(preimageBytes.buffer).setUint32(0, this.counter);
-    const preimage = bytesToHex(preimageBytes);
+    const preimageBytes = Buffer.alloc(32);
+    preimageBytes.writeUInt32BE(this.counter, 0);
+    const preimage = preimageBytes.toString("hex");
 
-    const hashBuffer = await crypto.subtle.digest("SHA-256", preimageBytes);
-    const paymentHash = bytesToHex(new Uint8Array(hashBuffer));
+    const paymentHash = createHash("sha256")
+      .update(preimageBytes)
+      .digest("hex");
 
     const bolt11 = `lnbcrt${params.amountSats}n1mock${paymentHash.slice(0, 16)}`;
 
