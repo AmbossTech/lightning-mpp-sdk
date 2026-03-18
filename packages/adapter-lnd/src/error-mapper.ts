@@ -6,7 +6,7 @@ import {
   type LightningError,
   PaymentTimeoutError,
   RouteNotFoundError,
-} from '@lightning-mpp-sdk/core'
+} from '@ambosstech/lightning-mpp-core'
 
 interface GrpcError {
   code?: number

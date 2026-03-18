@@ -1,5 +1,5 @@
 {
-  "name": "@lightning-mpp-sdk/adapter-mock",
+  "name": "@ambosstech/lightning-mpp-adapter-mock",
   "version": "0.1.0",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -20,7 +20,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@lightning-mpp-sdk/core": "workspace:*"
+    "@ambosstech/lightning-mpp-core": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.3.0",

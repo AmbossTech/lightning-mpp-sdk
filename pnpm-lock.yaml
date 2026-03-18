@@ -17,15 +17,15 @@ importers:
 
   packages/adapter-lnd:
     dependencies:
+      '@ambosstech/lightning-mpp-core':
+        specifier: workspace:*
+        version: link:../core
       '@grpc/grpc-js':
         specifier: ^1.12.0
         version: 1.14.3
       '@grpc/proto-loader':
         specifier: ^0.7.13
         version: 0.7.15
-      '@lightning-mpp-sdk/core':
-        specifier: workspace:*
-        version: link:../core
     devDependencies:
       tsup:
         specifier: ^8.3.0
@@ -39,7 +39,7 @@ importers:
 
   packages/adapter-mock:
     dependencies:
-      '@lightning-mpp-sdk/core':
+      '@ambosstech/lightning-mpp-core':
         specifier: workspace:*
         version: link:../core
     devDependencies:

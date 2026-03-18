@@ -6,12 +6,12 @@ import type {
   LookupInvoiceResult,
   PayInvoiceParams,
   PayInvoiceResult,
-} from '@lightning-mpp-sdk/core'
+} from '@ambosstech/lightning-mpp-core'
 import {
   InvoiceExpiredError,
   RouteNotFoundError,
   bytesToHex,
-} from '@lightning-mpp-sdk/core'
+} from '@ambosstech/lightning-mpp-core'
 
 export interface MockProviderOptions {
   autoSettle?: boolean

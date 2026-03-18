@@ -1,5 +1,5 @@
 {
-  "name": "@lightning-mpp-sdk/adapter-lnd",
+  "name": "@ambosstech/lightning-mpp-adapter-lnd",
   "version": "0.1.0",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -20,7 +20,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@lightning-mpp-sdk/core": "workspace:*",
+    "@ambosstech/lightning-mpp-core": "workspace:*",
     "@grpc/grpc-js": "^1.12.0",
     "@grpc/proto-loader": "^0.7.13"
   },
