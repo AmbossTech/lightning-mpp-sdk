@@ -32,9 +32,9 @@ importers:
 
   packages/adapter-lnd:
     dependencies:
-      '@ambosstech/lightning-mpp-core':
+      '@ambosstech/lightning-mpp-sdk':
         specifier: workspace:*
-        version: link:../core
+        version: link:../sdk
       '@grpc/grpc-js':
         specifier: ^1.12.0
         version: 1.14.3
@@ -54,9 +54,9 @@ importers:
 
   packages/adapter-mock:
     dependencies:
-      '@ambosstech/lightning-mpp-core':
+      '@ambosstech/lightning-mpp-sdk':
         specifier: workspace:*
-        version: link:../core
+        version: link:../sdk
     devDependencies:
       '@types/node':
         specifier: ^25.5.0
@@ -71,7 +71,7 @@ importers:
         specifier: ^2.1.0
         version: 2.1.9(@types/node@25.5.0)
 
-  packages/core:
+  packages/sdk:
     dependencies:
       mppx:
         specifier: ^0.4.7

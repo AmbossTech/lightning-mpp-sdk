@@ -29,7 +29,7 @@ No external payment processor. No polling. No webhooks. The preimage _is_ the pr
 
 | Package                                  | Description                                                      |
 | ---------------------------------------- | ---------------------------------------------------------------- |
-| `@ambosstech/lightning-mpp-core`         | Core SDK — method definitions, provider interface, store, errors |
+| `@ambosstech/lightning-mpp-sdk`         | Core SDK — method definitions, provider interface, store, errors |
 | `@ambosstech/lightning-mpp-adapter-lnd`  | LND adapter — gRPC and REST transports                           |
 | `@ambosstech/lightning-mpp-adapter-mock` | Mock adapter — for testing without a real Lightning node         |
 
@@ -39,10 +39,10 @@ No external payment processor. No polling. No webhooks. The preimage _is_ the pr
 
 ```bash
 # Core + LND adapter
-pnpm add @ambosstech/lightning-mpp-core @ambosstech/lightning-mpp-adapter-lnd mppx
+pnpm add @ambosstech/lightning-mpp-sdk @ambosstech/lightning-mpp-adapter-lnd mppx
 
 # Or core + mock for testing
-pnpm add @ambosstech/lightning-mpp-core @ambosstech/lightning-mpp-adapter-mock mppx
+pnpm add @ambosstech/lightning-mpp-sdk @ambosstech/lightning-mpp-adapter-mock mppx
 ```
 
 ### Server — charge (one-time payment)
@@ -54,7 +54,7 @@ import { Mppx } from "mppx";
 import {
   lightningChargeServer,
   createMemoryStore,
-} from "@ambosstech/lightning-mpp-core";
+} from "@ambosstech/lightning-mpp-sdk";
 import { LndLightningProvider } from "@ambosstech/lightning-mpp-adapter-lnd";
 
 // 1. Create a provider (LND in this example)
@@ -97,7 +97,7 @@ The MPP client intercepts `402` responses automatically — paying invoices and 
 
 ```ts
 import { Mppx } from "mppx";
-import { lightningChargeClient } from "@ambosstech/lightning-mpp-core";
+import { lightningChargeClient } from "@ambosstech/lightning-mpp-sdk";
 import { LndLightningProvider } from "@ambosstech/lightning-mpp-adapter-lnd";
 
 const provider = new LndLightningProvider({
@@ -129,7 +129,7 @@ import { Mppx } from "mppx";
 import {
   lightningSessionServer,
   createMemoryStore,
-} from "@ambosstech/lightning-mpp-core";
+} from "@ambosstech/lightning-mpp-sdk";
 import { LndLightningProvider } from "@ambosstech/lightning-mpp-adapter-lnd";
 
 const provider = new LndLightningProvider({
@@ -182,7 +182,7 @@ The `serve()` method handles the full SSE lifecycle:
 
 ```ts
 import { Mppx } from "mppx";
-import { lightningSessionClient } from "@ambosstech/lightning-mpp-core";
+import { lightningSessionClient } from "@ambosstech/lightning-mpp-sdk";
 import { LndLightningProvider } from "@ambosstech/lightning-mpp-adapter-lnd";
 
 const provider = new LndLightningProvider({
@@ -227,7 +227,7 @@ import {
   lightningChargeServer,
   lightningChargeClient,
   createMemoryStore,
-} from "@ambosstech/lightning-mpp-core";
+} from "@ambosstech/lightning-mpp-sdk";
 import { MockLightningProvider } from "@ambosstech/lightning-mpp-adapter-mock";
 
 // Server-side mock (auto-settles invoices)
@@ -286,7 +286,7 @@ const provider = new LndLightningProvider({
 Implement `LightningProvider` to add support for any Lightning node or wallet:
 
 ```ts
-import type { LightningProvider } from "@ambosstech/lightning-mpp-core";
+import type { LightningProvider } from "@ambosstech/lightning-mpp-sdk";
 
 class MyCustomProvider implements LightningProvider {
   async createInvoice(params: {
@@ -317,7 +317,7 @@ class MyCustomProvider implements LightningProvider {
 Session state and consume-once tracking use a `KeyValueStore` interface. The default is in-memory — swap it for Redis, Cloudflare KV, DynamoDB, etc. in production:
 
 ```ts
-import type { KeyValueStore } from "@ambosstech/lightning-mpp-core";
+import type { KeyValueStore } from "@ambosstech/lightning-mpp-sdk";
 
 const redisStore: KeyValueStore = {
   async get<T>(key: string): Promise<T | undefined> {
@@ -345,7 +345,7 @@ import {
   PaymentTimeoutError,
   ConnectionError,
   AuthenticationError,
-} from "@ambosstech/lightning-mpp-core";
+} from "@ambosstech/lightning-mpp-sdk";
 
 try {
   await provider.payInvoice({ bolt11: invoice });
@@ -454,7 +454,7 @@ pnpm format         # Prettier
 ```
 lightning-mpp-sdk/
 ├── packages/
-│   ├── core/                # Core SDK — methods, provider interface, store, errors
+│   ├── sdk/                # Core SDK — methods, provider interface, store, errors
 │   │   └── src/
 │   │       ├── methods/     # charge.ts, session.ts (client + server)
 │   │       ├── session/     # SessionStateManager (low-level API)

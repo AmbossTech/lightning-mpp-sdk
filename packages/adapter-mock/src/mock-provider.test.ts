@@ -1,4 +1,4 @@
-import { verifyPreimage } from "@ambosstech/lightning-mpp-core";
+import { verifyPreimage } from "@ambosstech/lightning-mpp-sdk";
 import { describe, expect, it } from "vitest";
 import { MockLightningProvider } from "./mock-provider.js";
 

@@ -20,7 +20,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@ambosstech/lightning-mpp-core": "workspace:*"
+    "@ambosstech/lightning-mpp-sdk": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",

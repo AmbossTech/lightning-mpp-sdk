@@ -1,5 +1,5 @@
 {
-  "name": "@ambosstech/lightning-mpp-core",
+  "name": "@ambosstech/lightning-mpp-sdk",
   "version": "0.1.0",
   "type": "module",
   "main": "./dist/index.cjs",

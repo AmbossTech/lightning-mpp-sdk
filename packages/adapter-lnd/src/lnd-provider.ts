@@ -6,7 +6,7 @@ import type {
   LookupInvoiceResult,
   PayInvoiceParams,
   PayInvoiceResult,
-} from "@ambosstech/lightning-mpp-core";
+} from "@ambosstech/lightning-mpp-sdk";
 import { createGrpcTransport } from "./grpc-client.js";
 import { createRestTransport } from "./rest-client.js";
 import { mapLndError } from "./error-mapper.js";

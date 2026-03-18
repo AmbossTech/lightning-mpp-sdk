@@ -2,7 +2,7 @@ import {
   ConnectionError,
   base64ToHex,
   hexToBase64Url,
-} from "@ambosstech/lightning-mpp-core";
+} from "@ambosstech/lightning-mpp-sdk";
 import type { LndRestConfig, LndTransport } from "./types.js";
 
 export function createRestTransport(config: LndRestConfig): LndTransport {
