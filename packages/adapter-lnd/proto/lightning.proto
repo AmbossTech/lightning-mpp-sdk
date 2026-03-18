@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package lnrpc;
+
+option go_package = "github.com/lightningnetwork/lnd/lnrpc";
+
+service Lightning {
+  rpc AddInvoice (Invoice) returns (AddInvoiceResponse);
+  rpc LookupInvoice (PaymentHash) returns (Invoice);
+  rpc SendPaymentSync (SendRequest) returns (SendResponse);
+}
+
+message Invoice {
+  string memo = 1;
+  bytes r_preimage = 3;
+  bytes r_hash = 4;
+  int64 value = 5;
+  bool settled = 6;
+  int64 creation_date = 7;
+  int64 settle_date = 8;
+  string payment_request = 9;
+  int64 expiry = 15;
+  string state = 30;
+}
+
+message AddInvoiceResponse {
+  bytes r_hash = 1;
+  string payment_request = 2;
+  uint64 add_index = 16;
+}
+
+message PaymentHash {
+  string r_hash_str = 1;
+  bytes r_hash = 2;
+}
+
+message SendRequest {
+  bytes dest = 1;
+  int64 amt = 2;
+  string payment_request = 6;
+  FeeLimit fee_limit = 8;
+}
+
+message FeeLimit {
+  oneof limit {
+    int64 fixed = 1;
+    int64 fixed_msat = 3;
+    int64 percent = 2;
+  }
+}
+
+message SendResponse {
+  string payment_error = 1;
+  bytes payment_preimage = 2;
+  bytes payment_hash = 5;
+}
