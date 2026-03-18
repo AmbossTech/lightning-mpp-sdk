@@ -6,76 +6,80 @@ import type {
   LookupInvoiceResult,
   PayInvoiceParams,
   PayInvoiceResult,
-} from '@ambosstech/lightning-mpp-core'
-import { createGrpcClient, type LndGrpcClient } from './grpc-client.js'
-import { mapLndError } from './error-mapper.js'
-import type { LndConfig } from './types.js'
+} from "@ambosstech/lightning-mpp-core";
+import { createGrpcTransport } from "./grpc-client.js";
+import { createRestTransport } from "./rest-client.js";
+import { mapLndError } from "./error-mapper.js";
+import type { LndConfig, LndTransport } from "./types.js";
 
 export class LndLightningProvider implements LightningProvider {
-  private client: LndGrpcClient
+  private transport: LndTransport;
 
   constructor(config: LndConfig) {
-    this.client = createGrpcClient(config)
+    this.transport =
+      config.transport === "rest"
+        ? createRestTransport(config)
+        : createGrpcTransport(config);
   }
 
-  async createInvoice(params: CreateInvoiceParams): Promise<CreateInvoiceResult> {
+  async createInvoice(
+    params: CreateInvoiceParams,
+  ): Promise<CreateInvoiceResult> {
     try {
-      const response = await this.client.addInvoice({
+      const response = await this.transport.addInvoice({
         value: params.amountSats,
         memo: params.memo,
         expiry: params.expirySecs,
-      })
+      });
 
       return {
         bolt11: response.payment_request,
-        paymentHash: Buffer.from(response.r_hash).toString('hex'),
-      }
+        paymentHash: response.r_hash,
+      };
     } catch (error) {
-      throw mapLndError(error)
+      throw mapLndError(error);
     }
   }
 
   async payInvoice(params: PayInvoiceParams): Promise<PayInvoiceResult> {
     try {
-      const request: any = { payment_request: params.bolt11 }
+      const request: any = { payment_request: params.bolt11 };
       if (params.maxFeeSats !== undefined) {
-        request.fee_limit = { fixed: params.maxFeeSats }
+        request.fee_limit = { fixed: params.maxFeeSats };
       }
 
-      const response = await this.client.sendPaymentSync(request)
+      const response = await this.transport.sendPaymentSync(request);
 
       if (response.payment_error) {
-        throw new Error(response.payment_error)
+        throw new Error(response.payment_error);
       }
 
-      return {
-        preimage: Buffer.from(response.payment_preimage).toString('hex'),
-      }
+      return { preimage: response.payment_preimage };
     } catch (error) {
-      throw mapLndError(error)
+      throw mapLndError(error);
     }
   }
 
-  async lookupInvoice(params: LookupInvoiceParams): Promise<LookupInvoiceResult> {
+  async lookupInvoice(
+    params: LookupInvoiceParams,
+  ): Promise<LookupInvoiceResult> {
     try {
-      const response = await this.client.lookupInvoice({
+      const response = await this.transport.lookupInvoice({
         r_hash_str: params.paymentHash,
-      })
+      });
 
-      const settled = response.state === 'SETTLED'
+      const settled = response.state === "SETTLED";
       return {
         settled,
-        preimage: settled
-          ? Buffer.from(response.r_preimage).toString('hex')
-          : undefined,
+        preimage: settled ? response.r_preimage : undefined,
         amountSats: response.value ? Number(response.value) : undefined,
-      }
+      };
     } catch (error) {
-      throw mapLndError(error)
+      throw mapLndError(error);
     }
   }
 
   close(): void {
-    this.client.close()
+    this.transport.close();
   }
 }

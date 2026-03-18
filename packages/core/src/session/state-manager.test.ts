@@ -1,14 +1,13 @@
+import { createHash } from 'node:crypto'
 import { describe, expect, it, vi } from 'vitest'
 import { InsufficientBalanceError } from '../errors.js'
-import { bytesToHex } from '../preimage.js'
 import { SessionStateManager } from './state-manager.js'
 
-async function makePreimageAndHash(seed: number) {
-  const preimageBytes = new Uint8Array(32)
+function makePreimageAndHash(seed: number) {
+  const preimageBytes = Buffer.alloc(32)
   preimageBytes[0] = seed
-  const preimage = bytesToHex(preimageBytes)
-  const hashBuffer = await crypto.subtle.digest('SHA-256', preimageBytes)
-  const paymentHash = bytesToHex(new Uint8Array(hashBuffer))
+  const preimage = preimageBytes.toString('hex')
+  const paymentHash = createHash('sha256').update(preimageBytes).digest('hex')
   return { preimage, paymentHash }
 }
 
@@ -23,30 +22,30 @@ describe('SessionStateManager', () => {
     expect(state.totalDeducted).toBe(0)
   })
 
-  it('accepts deposits with valid preimage', async () => {
+  it('accepts deposits with valid preimage', () => {
     const mgr = new SessionStateManager({ sessionId: 'test-2' })
-    const { preimage, paymentHash } = await makePreimageAndHash(1)
+    const { preimage, paymentHash } = makePreimageAndHash(1)
 
-    const state = await mgr.deposit({ preimage, paymentHash, amountSats: 1000 })
+    const state = mgr.deposit({ preimage, paymentHash, amountSats: 1000 })
     expect(state.balance).toBe(1000)
     expect(state.totalDeposited).toBe(1000)
     expect(state.deposits).toHaveLength(1)
   })
 
-  it('rejects deposits with invalid preimage', async () => {
+  it('rejects deposits with invalid preimage', () => {
     const mgr = new SessionStateManager({ sessionId: 'test-3' })
-    const { paymentHash } = await makePreimageAndHash(1)
+    const { paymentHash } = makePreimageAndHash(1)
     const wrongPreimage = '0000000000000000000000000000000000000000000000000000000000000099'
 
-    await expect(
+    expect(() =>
       mgr.deposit({ preimage: wrongPreimage, paymentHash, amountSats: 1000 }),
-    ).rejects.toThrow('Invalid preimage')
+    ).toThrow('Invalid preimage')
   })
 
-  it('deducts from balance', async () => {
+  it('deducts from balance', () => {
     const mgr = new SessionStateManager({ sessionId: 'test-4' })
-    const { preimage, paymentHash } = await makePreimageAndHash(2)
-    await mgr.deposit({ preimage, paymentHash, amountSats: 1000 })
+    const { preimage, paymentHash } = makePreimageAndHash(2)
+    mgr.deposit({ preimage, paymentHash, amountSats: 1000 })
 
     const state = mgr.deduct(400, 'api call')
     expect(state.balance).toBe(600)
@@ -54,18 +53,18 @@ describe('SessionStateManager', () => {
     expect(state.status).toBe('active')
   })
 
-  it('throws InsufficientBalanceError when deducting more than balance', async () => {
+  it('throws InsufficientBalanceError when deducting more than balance', () => {
     const mgr = new SessionStateManager({ sessionId: 'test-5' })
-    const { preimage, paymentHash } = await makePreimageAndHash(3)
-    await mgr.deposit({ preimage, paymentHash, amountSats: 100 })
+    const { preimage, paymentHash } = makePreimageAndHash(3)
+    mgr.deposit({ preimage, paymentHash, amountSats: 100 })
 
     expect(() => mgr.deduct(200)).toThrow(InsufficientBalanceError)
   })
 
-  it('closes session and returns refund amount', async () => {
+  it('closes session and returns refund amount', () => {
     const mgr = new SessionStateManager({ sessionId: 'test-6' })
-    const { preimage, paymentHash } = await makePreimageAndHash(4)
-    await mgr.deposit({ preimage, paymentHash, amountSats: 1000 })
+    const { preimage, paymentHash } = makePreimageAndHash(4)
+    mgr.deposit({ preimage, paymentHash, amountSats: 1000 })
     mgr.deduct(300)
 
     const { refundSats, state } = mgr.close()
@@ -73,24 +72,24 @@ describe('SessionStateManager', () => {
     expect(state.status).toBe('closed')
   })
 
-  it('prevents operations on closed sessions', async () => {
+  it('prevents operations on closed sessions', () => {
     const mgr = new SessionStateManager({ sessionId: 'test-7' })
-    const { preimage, paymentHash } = await makePreimageAndHash(5)
-    await mgr.deposit({ preimage, paymentHash, amountSats: 100 })
+    const { preimage, paymentHash } = makePreimageAndHash(5)
+    mgr.deposit({ preimage, paymentHash, amountSats: 100 })
     mgr.close()
 
-    await expect(
+    expect(() =>
       mgr.deposit({ preimage, paymentHash, amountSats: 100 }),
-    ).rejects.toThrow('Invalid session status')
+    ).toThrow('Invalid session status')
     expect(() => mgr.deduct(10)).toThrow('Invalid session status')
   })
 
-  it('calls onStateChange callback', async () => {
+  it('calls onStateChange callback', () => {
     const onChange = vi.fn()
     const mgr = new SessionStateManager({ sessionId: 'test-8', onStateChange: onChange })
-    const { preimage, paymentHash } = await makePreimageAndHash(6)
+    const { preimage, paymentHash } = makePreimageAndHash(6)
 
-    await mgr.deposit({ preimage, paymentHash, amountSats: 500 })
+    mgr.deposit({ preimage, paymentHash, amountSats: 500 })
     expect(onChange).toHaveBeenCalledTimes(1)
 
     mgr.deduct(100)
@@ -100,10 +99,10 @@ describe('SessionStateManager', () => {
     expect(onChange).toHaveBeenCalledTimes(3)
   })
 
-  it('returns deep copies from getState', async () => {
+  it('returns deep copies from getState', () => {
     const mgr = new SessionStateManager({ sessionId: 'test-9' })
-    const { preimage, paymentHash } = await makePreimageAndHash(7)
-    await mgr.deposit({ preimage, paymentHash, amountSats: 500 })
+    const { preimage, paymentHash } = makePreimageAndHash(7)
+    mgr.deposit({ preimage, paymentHash, amountSats: 500 })
 
     const state1 = mgr.getState()
     const state2 = mgr.getState()

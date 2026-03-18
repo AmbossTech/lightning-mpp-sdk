@@ -7,7 +7,7 @@ export type {
   LookupInvoiceResult,
   PayInvoiceParams,
   PayInvoiceResult,
-} from './provider.js'
+} from "./provider.js";
 
 // Errors
 export {
@@ -18,34 +18,38 @@ export {
   LightningError,
   PaymentTimeoutError,
   RouteNotFoundError,
-} from './errors.js'
-export type { LightningErrorCode } from './errors.js'
+} from "./errors.js";
+export type { LightningErrorCode } from "./errors.js";
 
 // Preimage
-export { bytesToHex, hexToBytes, verifyPreimage } from './preimage.js'
+export {
+  base64ToHex,
+  bytesToHex,
+  hexToBase64Url,
+  hexToBytes,
+  verifyPreimage,
+} from "./preimage.js";
 
 // Price Oracle
-export type { PriceOracle } from './price-oracle.js'
+export type { PriceOracle } from "./price-oracle.js";
 
 // Methods
 export {
   lightningCharge,
   lightningChargeClient,
   lightningChargeServer,
-} from './methods/index.js'
+} from "./methods/index.js";
 export type {
   LightningChallengeRequest,
   LightningCredentialPayload,
-} from './methods/index.js'
+} from "./methods/index.js";
 
 // Session
-export {
-  SessionStateManager,
-} from './session/index.js'
+export { SessionStateManager } from "./session/index.js";
 export type {
   SessionDeduction,
   SessionDeposit,
   SessionState,
   SessionStateManagerOptions,
   SessionStatus,
-} from './session/index.js'
+} from "./session/index.js";
