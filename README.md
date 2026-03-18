@@ -10,28 +10,28 @@ MPP lets any HTTP API accept payments using the standard `402 Payment Required` 
 
 ```
 Client                          Server
-  │                               │
-  │──── GET /resource ───────────>│
-  │                               │
-  │<─── 402 + BOLT11 invoice ─────│  server generates invoice via provider
-  │                               │
-  │  (pay invoice over Lightning) │
-  │                               │
-  │──── GET /resource + preimage ─>│
-  │                               │  server verifies sha256(preimage) == paymentHash
-  │<─── 200 + resource ──────────│
-  │                               │
+  │                                 │
+  │────── GET /resource ───────────>│
+  │                                 │
+  │<──── 402 + BOLT11 invoice ──────│  server generates invoice via provider
+  │                                 │
+  │   (pay invoice over Lightning)  │
+  │                                 │
+  │─── GET /resource + preimage ───>│
+  │                                 │  server verifies sha256(preimage) == paymentHash
+  │<────── 200 + resource ──────────│
+  │                                 │
 ```
 
 No external payment processor. No polling. No webhooks. The preimage _is_ the proof of payment.
 
 ## Packages
 
-| Package | Description |
-| --- | --- |
-| `@ambosstech/lightning-mpp-core` | Core SDK — method definitions, provider interface, store, errors |
-| `@ambosstech/lightning-mpp-adapter-lnd` | LND adapter — gRPC and REST transports |
-| `@ambosstech/lightning-mpp-adapter-mock` | Mock adapter — for testing without a real Lightning node |
+| Package                                  | Description                                                      |
+| ---------------------------------------- | ---------------------------------------------------------------- |
+| `@ambosstech/lightning-mpp-core`         | Core SDK — method definitions, provider interface, store, errors |
+| `@ambosstech/lightning-mpp-adapter-lnd`  | LND adapter — gRPC and REST transports                           |
+| `@ambosstech/lightning-mpp-adapter-mock` | Mock adapter — for testing without a real Lightning node         |
 
 ## Quick start
 
@@ -140,8 +140,8 @@ const provider = new LndLightningProvider({
 
 const sessionMethod = lightningSessionServer({
   provider,
-  depositAmount: 300,    // sats required upfront
-  idleTimeout: 300,      // auto-close after 5 min inactivity
+  depositAmount: 300, // sats required upfront
+  idleTimeout: 300, // auto-close after 5 min inactivity
   unitType: "chunk",
 });
 
@@ -152,7 +152,7 @@ const mppx = Mppx.create({
 
 export async function handler(request: Request): Promise<Response> {
   const result = await mppx.session({
-    amount: "2",          // 2 sats per chunk
+    amount: "2", // 2 sats per chunk
     currency: "sat",
     description: "LLM stream",
   })(request);
@@ -162,16 +162,17 @@ export async function handler(request: Request): Promise<Response> {
   // Use the built-in serve() for automatic per-chunk billing over SSE
   return result.withReceipt(
     sessionMethod.serve({
-      sessionId: "...",   // from the credential
+      sessionId: "...", // from the credential
       satsPerChunk: 2,
       generate: myAsyncGenerator(),
-      timeoutMs: 60_000,  // wait 60s for top-up before closing
+      timeoutMs: 60_000, // wait 60s for top-up before closing
     }),
   );
 }
 ```
 
 The `serve()` method handles the full SSE lifecycle:
+
 - Deducts `satsPerChunk` from the session balance for each yielded value
 - Emits `payment-need-topup` when balance is exhausted
 - Holds the connection open until the client tops up or timeout elapses
@@ -247,11 +248,11 @@ const slowProvider = new MockLightningProvider({ paymentDelay: 2000 });
 
 ### Mock provider options
 
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
-| `autoSettle` | `boolean` | `true` | Auto-mark invoices as settled on lookup |
-| `failOnPay` | `boolean` | `false` | Throw `RouteNotFoundError` on payment |
-| `paymentDelay` | `number` | `0` | Artificial delay in ms before payment resolves |
+| Option         | Type      | Default | Description                                    |
+| -------------- | --------- | ------- | ---------------------------------------------- |
+| `autoSettle`   | `boolean` | `true`  | Auto-mark invoices as settled on lookup        |
+| `failOnPay`    | `boolean` | `false` | Throw `RouteNotFoundError` on payment          |
+| `paymentDelay` | `number`  | `0`     | Artificial delay in ms before payment resolves |
 
 ## LND adapter configuration
 
@@ -275,8 +276,8 @@ const provider = new LndLightningProvider({
 const provider = new LndLightningProvider({
   transport: "rest",
   url: "https://127.0.0.1:8080",
-  macaroon: process.env.LND_MACAROON!,        // hex-encoded
-  fetch: customFetchWithTLS,                   // optional: custom fetch for TLS cert handling
+  macaroon: process.env.LND_MACAROON!, // hex-encoded
+  fetch: customFetchWithTLS, // optional: custom fetch for TLS cert handling
 });
 ```
 
@@ -298,7 +299,7 @@ class MyCustomProvider implements LightningProvider {
 
   async payInvoice(params: {
     bolt11: string;
-    amountSats?: number;   // required for 0-amount invoices (e.g. session refunds)
+    amountSats?: number; // required for 0-amount invoices (e.g. session refunds)
     maxFeeSats?: number;
     timeoutSecs?: number;
   }) {
@@ -359,14 +360,14 @@ try {
 }
 ```
 
-| Error | Code | When |
-| --- | --- | --- |
-| `InsufficientBalanceError` | `INSUFFICIENT_BALANCE` | Not enough local balance |
-| `InvoiceExpiredError` | `INVOICE_EXPIRED` | Invoice TTL has elapsed |
-| `RouteNotFoundError` | `ROUTE_NOT_FOUND` | No route to destination |
-| `PaymentTimeoutError` | `PAYMENT_TIMEOUT` | Payment did not complete in time |
-| `ConnectionError` | `CONNECTION_ERROR` | Cannot reach the Lightning node |
-| `AuthenticationError` | `AUTHENTICATION_ERROR` | Invalid macaroon or credentials |
+| Error                      | Code                   | When                             |
+| -------------------------- | ---------------------- | -------------------------------- |
+| `InsufficientBalanceError` | `INSUFFICIENT_BALANCE` | Not enough local balance         |
+| `InvoiceExpiredError`      | `INVOICE_EXPIRED`      | Invoice TTL has elapsed          |
+| `RouteNotFoundError`       | `ROUTE_NOT_FOUND`      | No route to destination          |
+| `PaymentTimeoutError`      | `PAYMENT_TIMEOUT`      | Payment did not complete in time |
+| `ConnectionError`          | `CONNECTION_ERROR`     | Cannot reach the Lightning node  |
+| `AuthenticationError`      | `AUTHENTICATION_ERROR` | Invalid macaroon or credentials  |
 
 ## API reference
 
@@ -374,33 +375,33 @@ try {
 
 #### `lightningChargeServer(options)`
 
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
-| `provider` | `LightningProvider` | **required** | Lightning node adapter |
-| `store` | `KeyValueStore` | in-memory | For consume-once tracking |
-| `currency` | `string` | `"sat"` | Currency code sent in challenges |
-| `network` | `string` | — | Network name sent in challenges (e.g. `"mainnet"`) |
-| `invoiceExpirySecs` | `number` | `3600` | Invoice TTL in seconds |
+| Option              | Type                | Default      | Description                                        |
+| ------------------- | ------------------- | ------------ | -------------------------------------------------- |
+| `provider`          | `LightningProvider` | **required** | Lightning node adapter                             |
+| `store`             | `KeyValueStore`     | in-memory    | For consume-once tracking                          |
+| `currency`          | `string`            | `"sat"`      | Currency code sent in challenges                   |
+| `network`           | `string`            | —            | Network name sent in challenges (e.g. `"mainnet"`) |
+| `invoiceExpirySecs` | `number`            | `3600`       | Invoice TTL in seconds                             |
 
 #### `lightningChargeClient(provider, options?)`
 
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
-| `maxFeeSats` | `number` | — | Maximum routing fee |
-| `onProgress` | `(event) => void` | — | Progress callback (`challenge`, `paying`, `paid`) |
+| Option       | Type              | Default | Description                                       |
+| ------------ | ----------------- | ------- | ------------------------------------------------- |
+| `maxFeeSats` | `number`          | —       | Maximum routing fee                               |
+| `onProgress` | `(event) => void` | —       | Progress callback (`challenge`, `paying`, `paid`) |
 
 ### Session method
 
 #### `lightningSessionServer(options)`
 
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
-| `provider` | `LightningProvider` | **required** | Lightning node adapter |
-| `store` | `KeyValueStore` | in-memory | For session state |
-| `currency` | `string` | `"sat"` | Currency code |
-| `depositAmount` | `number` | `amount * 20` | Deposit size in sats |
-| `unitType` | `string` | — | Label for the priced unit (e.g. `"token"`) |
-| `idleTimeout` | `number` | `300` | Idle timeout in seconds (0 to disable) |
+| Option          | Type                | Default       | Description                                |
+| --------------- | ------------------- | ------------- | ------------------------------------------ |
+| `provider`      | `LightningProvider` | **required**  | Lightning node adapter                     |
+| `store`         | `KeyValueStore`     | in-memory     | For session state                          |
+| `currency`      | `string`            | `"sat"`       | Currency code                              |
+| `depositAmount` | `number`            | `amount * 20` | Deposit size in sats                       |
+| `unitType`      | `string`            | —             | Label for the priced unit (e.g. `"token"`) |
+| `idleTimeout`   | `number`            | `300`         | Idle timeout in seconds (0 to disable)     |
 
 Returns the method plus `{ deduct, waitForTopUp, serve }`:
 
@@ -410,10 +411,10 @@ Returns the method plus `{ deduct, waitForTopUp, serve }`:
 
 #### `lightningSessionClient(provider, options?)`
 
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
-| `maxFeeSats` | `number` | — | Maximum routing fee |
-| `onProgress` | `(event) => void` | — | Progress callback (`opening`, `bearer`, `topping-up`, `topped-up`) |
+| Option       | Type              | Default | Description                                                        |
+| ------------ | ----------------- | ------- | ------------------------------------------------------------------ |
+| `maxFeeSats` | `number`          | —       | Maximum routing fee                                                |
+| `onProgress` | `(event) => void` | —       | Progress callback (`opening`, `bearer`, `topping-up`, `topped-up`) |
 
 Returns the method plus `{ close, topUp, getSession, resetSession }`:
 
