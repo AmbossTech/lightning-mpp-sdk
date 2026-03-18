@@ -67,6 +67,9 @@ export function createRestTransport(config: LndRestConfig): LndTransport {
 
     async sendPaymentSync(params) {
       const body: any = { payment_request: params.payment_request };
+      if (params.amt !== undefined) {
+        body.amt = String(params.amt);
+      }
       if (params.fee_limit) {
         body.fee_limit = { fixed: String(params.fee_limit.fixed) };
       }

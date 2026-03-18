@@ -318,6 +318,7 @@ export function lightningSessionServer(options: {
       try {
         await provider.payInvoice({
           bolt11: state.returnInvoice,
+          amountSats: refundSats,
           maxFeeSats: 100,
         });
         refundStatus = "succeeded";
@@ -426,6 +427,12 @@ export function lightningSessionServer(options: {
           );
         }
 
+        if (!request.depositInvoice) {
+          throw new Error(
+            "Missing depositInvoice in challenge request for open action",
+          );
+        }
+
         const depositSats = parseInt(
           (request.depositAmount as string) ?? "0",
           10,
@@ -503,6 +510,12 @@ export function lightningSessionServer(options: {
         if (!isValid) {
           throw new Error(
             `Invalid top-up preimage: does not match ${topUpHash}`,
+          );
+        }
+
+        if (!request.depositInvoice) {
+          throw new Error(
+            "Missing depositInvoice in challenge request for topUp action",
           );
         }
 
@@ -585,5 +598,73 @@ export function lightningSessionServer(options: {
     },
   });
 
-  return Object.assign(method, { deduct, waitForTopUp });
+  /**
+   * Serves a metered SSE stream, handling per-chunk billing automatically.
+   *
+   * For each value yielded by `generate`, deducts `satsPerChunk` from the
+   * session balance and emits a `data:` SSE event. When the balance is
+   * exhausted, emits a `payment-need-topup` event and holds the connection
+   * open until the client tops up or `timeoutMs` elapses.
+   */
+  function serve(options: {
+    sessionId: string;
+    satsPerChunk: number;
+    generate: AsyncIterable<string>;
+    timeoutMs?: number;
+  }): Response {
+    const { sessionId, satsPerChunk, generate, timeoutMs = 60_000 } = options;
+    const enc = new TextEncoder();
+
+    const stream = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        const initialState = await store.get<SessionState>(storeKey(sessionId));
+        const sessionSpentBefore = initialState?.spent ?? 0;
+        let spent = 0;
+        try {
+          let units = 0;
+          for await (const value of generate) {
+            while (!(await deduct(sessionId, satsPerChunk))) {
+              controller.enqueue(
+                enc.encode(
+                  `event: payment-need-topup\ndata: ${JSON.stringify({ sessionId, balanceRequired: satsPerChunk, balanceSpent: sessionSpentBefore + spent })}\n\n`,
+                ),
+              );
+              const resumed = await waitForTopUp(sessionId, timeoutMs);
+              if (!resumed) {
+                controller.enqueue(
+                  enc.encode(
+                    `event: session-timeout\ndata: ${JSON.stringify({ sessionId, balanceSpent: sessionSpentBefore + spent, balanceRequired: satsPerChunk })}\n\n`,
+                  ),
+                );
+                return;
+              }
+            }
+            spent += satsPerChunk;
+            units++;
+            controller.enqueue(enc.encode(`data: ${value}\n\n`));
+          }
+          controller.enqueue(
+            enc.encode(
+              `event: payment-receipt\ndata: ${JSON.stringify({ method: "lightning", reference: sessionId, status: "success", timestamp: new Date().toISOString(), spent, units })}\n\n`,
+            ),
+          );
+          controller.enqueue(enc.encode(`data: [DONE]\n\n`));
+        } catch (err) {
+          controller.error(err);
+        } finally {
+          controller.close();
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
+    });
+  }
+
+  return Object.assign(method, { deduct, waitForTopUp, serve });
 }

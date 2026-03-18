@@ -44,6 +44,9 @@ export class LndLightningProvider implements LightningProvider {
   async payInvoice(params: PayInvoiceParams): Promise<PayInvoiceResult> {
     try {
       const request: any = { payment_request: params.bolt11 };
+      if (params.amountSats !== undefined) {
+        request.amt = params.amountSats;
+      }
       if (params.maxFeeSats !== undefined) {
         request.fee_limit = { fixed: params.maxFeeSats };
       }

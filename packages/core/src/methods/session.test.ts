@@ -142,6 +142,7 @@ describe("lightningSessionServer", () => {
             currency: "sat",
             paymentHash,
             depositAmount: "200",
+            depositInvoice: "lnbc200n1deposit",
           },
         },
       },
@@ -150,6 +151,7 @@ describe("lightningSessionServer", () => {
         currency: "sat",
         paymentHash,
         depositAmount: "200",
+        depositInvoice: "lnbc200n1deposit",
       },
     });
 
@@ -187,6 +189,7 @@ describe("lightningSessionServer", () => {
             currency: "sat",
             paymentHash,
             depositAmount: "200",
+            depositInvoice: "lnbc200n1deposit",
           },
         },
       },
@@ -195,6 +198,7 @@ describe("lightningSessionServer", () => {
         currency: "sat",
         paymentHash,
         depositAmount: "200",
+        depositInvoice: "lnbc200n1deposit",
       },
     });
 
@@ -236,6 +240,7 @@ describe("lightningSessionServer", () => {
             currency: "sat",
             paymentHash,
             depositAmount: "200",
+            depositInvoice: "lnbc200n1deposit",
           },
         },
       },
@@ -244,6 +249,7 @@ describe("lightningSessionServer", () => {
         currency: "sat",
         paymentHash,
         depositAmount: "200",
+        depositInvoice: "lnbc200n1deposit",
       },
     });
 
@@ -278,6 +284,7 @@ describe("lightningSessionServer", () => {
             currency: "sat",
             paymentHash,
             depositAmount: "200",
+            depositInvoice: "lnbc200n1deposit",
           },
         },
       },
@@ -286,6 +293,7 @@ describe("lightningSessionServer", () => {
         currency: "sat",
         paymentHash,
         depositAmount: "200",
+        depositInvoice: "lnbc200n1deposit",
       },
     });
 
@@ -343,6 +351,7 @@ describe("lightningSessionServer", () => {
             currency: "sat",
             paymentHash,
             depositAmount: "100",
+            depositInvoice: "lnbc100n1deposit",
           },
         },
       },
@@ -351,6 +360,7 @@ describe("lightningSessionServer", () => {
         currency: "sat",
         paymentHash,
         depositAmount: "100",
+        depositInvoice: "lnbc100n1deposit",
       },
     });
 
@@ -387,5 +397,205 @@ describe("lightningSessionServer", () => {
 
     // Should now be able to deduct again
     expect(await method.deduct(paymentHash, 50)).toBe(true);
+  });
+
+  it("throws when deducting from nonexistent session", async () => {
+    const store = createMemoryStore();
+    const provider = makeProvider();
+    const method = lightningSessionServer({
+      provider,
+      store,
+      idleTimeout: 0,
+    });
+
+    await expect(method.deduct("nonexistent", 10)).rejects.toThrow(
+      "Session not found",
+    );
+  });
+
+  it("throws when deducting from closed session", async () => {
+    const store = createMemoryStore();
+    const provider = makeProvider();
+    const { preimage, paymentHash } = makePreimage(8);
+
+    const method = lightningSessionServer({
+      provider,
+      store,
+      idleTimeout: 0,
+    });
+
+    // Open session
+    await (method as any).verify({
+      credential: {
+        payload: { action: "open", preimage, returnInvoice: "lnbc1return" },
+        challenge: {
+          request: {
+            amount: "10",
+            currency: "sat",
+            paymentHash,
+            depositAmount: "200",
+            depositInvoice: "lnbc200n1deposit",
+          },
+        },
+      },
+      request: {
+        amount: "10",
+        currency: "sat",
+        paymentHash,
+        depositAmount: "200",
+        depositInvoice: "lnbc200n1deposit",
+      },
+    });
+
+    // Close session
+    await (method as any).verify({
+      credential: {
+        payload: { action: "close", sessionId: paymentHash, preimage },
+        challenge: {
+          request: { amount: "10", currency: "sat", paymentHash },
+        },
+      },
+      request: { amount: "10", currency: "sat", paymentHash },
+    });
+
+    // Deducting from closed session should throw
+    await expect(method.deduct(paymentHash, 10)).rejects.toThrow(
+      "already closed",
+    );
+  });
+
+  it("deducts exact remaining balance then rejects", async () => {
+    const store = createMemoryStore();
+    const provider = makeProvider();
+    const { preimage, paymentHash } = makePreimage(9);
+
+    const method = lightningSessionServer({
+      provider,
+      store,
+      idleTimeout: 0,
+    });
+
+    await (method as any).verify({
+      credential: {
+        payload: { action: "open", preimage, returnInvoice: "lnbc1return" },
+        challenge: {
+          request: {
+            amount: "10",
+            currency: "sat",
+            paymentHash,
+            depositAmount: "100",
+            depositInvoice: "lnbc100n1deposit",
+          },
+        },
+      },
+      request: {
+        amount: "10",
+        currency: "sat",
+        paymentHash,
+        depositAmount: "100",
+        depositInvoice: "lnbc100n1deposit",
+      },
+    });
+
+    // Deduct all 100
+    expect(await method.deduct(paymentHash, 100)).toBe(true);
+    // Next deduction of even 1 sat should fail
+    expect(await method.deduct(paymentHash, 1)).toBe(false);
+  });
+
+  it("waitForTopUp resolves false on timeout", async () => {
+    const store = createMemoryStore();
+    const provider = makeProvider();
+    const { preimage, paymentHash } = makePreimage(10);
+
+    const method = lightningSessionServer({
+      provider,
+      store,
+      idleTimeout: 0,
+    });
+
+    // Open session
+    await (method as any).verify({
+      credential: {
+        payload: { action: "open", preimage, returnInvoice: "lnbc1return" },
+        challenge: {
+          request: {
+            amount: "10",
+            currency: "sat",
+            paymentHash,
+            depositAmount: "100",
+            depositInvoice: "lnbc100n1deposit",
+          },
+        },
+      },
+      request: {
+        amount: "10",
+        currency: "sat",
+        paymentHash,
+        depositAmount: "100",
+        depositInvoice: "lnbc100n1deposit",
+      },
+    });
+
+    // waitForTopUp with a very short timeout should resolve false
+    const result = await method.waitForTopUp(paymentHash, 50);
+    expect(result).toBe(false);
+  });
+
+  it("passes amountSats to provider for refund payment", async () => {
+    const store = createMemoryStore();
+    let capturedAmountSats: number | undefined;
+    const provider = makeProvider();
+    const originalPayInvoice = provider.payInvoice.bind(provider);
+    provider.payInvoice = async (params) => {
+      capturedAmountSats = params.amountSats;
+      return originalPayInvoice(params);
+    };
+    const { preimage, paymentHash } = makePreimage(11);
+
+    const method = lightningSessionServer({
+      provider,
+      store,
+      idleTimeout: 0,
+    });
+
+    // Open session with 200 sat deposit
+    await (method as any).verify({
+      credential: {
+        payload: { action: "open", preimage, returnInvoice: "lnbc1return" },
+        challenge: {
+          request: {
+            amount: "10",
+            currency: "sat",
+            paymentHash,
+            depositAmount: "200",
+            depositInvoice: "lnbc200n1deposit",
+          },
+        },
+      },
+      request: {
+        amount: "10",
+        currency: "sat",
+        paymentHash,
+        depositAmount: "200",
+        depositInvoice: "lnbc200n1deposit",
+      },
+    });
+
+    // Deduct 50 sats
+    await method.deduct(paymentHash, 50);
+
+    // Close session — should refund 150 sats
+    await (method as any).verify({
+      credential: {
+        payload: { action: "close", sessionId: paymentHash, preimage },
+        challenge: {
+          request: { amount: "10", currency: "sat", paymentHash },
+        },
+      },
+      request: { amount: "10", currency: "sat", paymentHash },
+    });
+
+    expect(capturedAmountSats).toBe(150);
   });
 });

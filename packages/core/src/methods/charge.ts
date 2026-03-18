@@ -36,10 +36,11 @@ export const lightningCharge = Method.from({
 export function lightningChargeClient(
   provider: LightningProvider,
   options?: {
+    maxFeeSats?: number;
     onProgress?: (event: LightningChargeClientProgress) => void;
   },
 ) {
-  const { onProgress } = options ?? {};
+  const { maxFeeSats, onProgress } = options ?? {};
 
   return Method.toClient(lightningCharge, {
     async createCredential({ challenge }) {
@@ -53,7 +54,10 @@ export function lightningChargeClient(
       });
       onProgress?.({ type: "paying" });
 
-      const result = await provider.payInvoice({ bolt11: invoice });
+      const result = await provider.payInvoice({
+        bolt11: invoice,
+        maxFeeSats,
+      });
 
       onProgress?.({ type: "paid", preimage: result.preimage });
 
@@ -83,12 +87,15 @@ export function lightningChargeServer(options: {
   store?: KeyValueStore;
   currency?: string;
   network?: string;
+  /** Invoice expiry in seconds. Defaults to 3600 (1 hour). */
+  invoiceExpirySecs?: number;
 }) {
   const {
     provider,
     store = createMemoryStore(),
     currency = "sat",
     network,
+    invoiceExpirySecs = 3600,
   } = options;
 
   return Method.toServer(lightningCharge, {
@@ -111,6 +118,14 @@ export function lightningChargeServer(options: {
       const { bolt11, paymentHash } = await provider.createInvoice({
         amountSats,
         memo: request.description ?? "",
+        expirySecs: invoiceExpirySecs,
+      });
+
+      // Track invoice creation time for expiry validation during verify.
+      const expiryKey = `lightning-charge:expiry:${paymentHash}`;
+      await store.put(expiryKey, {
+        createdAt: Date.now(),
+        expirySecs: invoiceExpirySecs,
       });
 
       return {
@@ -130,6 +145,20 @@ export function lightningChargeServer(options: {
 
       if (!expectedHash) {
         throw new Error("Missing paymentHash in challenge");
+      }
+
+      // Check invoice expiry before verifying the preimage to prevent
+      // accepting preimages for invoices the Lightning node would not settle.
+      const expiryKey = `lightning-charge:expiry:${expectedHash}`;
+      const expiryInfo = await store.get<{
+        createdAt: number;
+        expirySecs: number;
+      }>(expiryKey);
+      if (expiryInfo) {
+        const expiresAt = expiryInfo.createdAt + expiryInfo.expirySecs * 1000;
+        if (Date.now() > expiresAt) {
+          throw new Error("Invoice has expired");
+        }
       }
 
       const isValid = verifyPreimage(preimage, expectedHash);

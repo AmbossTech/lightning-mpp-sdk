@@ -30,6 +30,7 @@ export interface LndTransport {
 
   sendPaymentSync(params: {
     payment_request: string;
+    amt?: number;
     fee_limit?: { fixed: number };
   }): Promise<{
     payment_preimage: string;

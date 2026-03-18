@@ -11,6 +11,8 @@ export interface CreateInvoiceResult {
 
 export interface PayInvoiceParams {
   bolt11: string;
+  /** Amount in satoshis to send. Required for 0-amount invoices (e.g. session refunds). */
+  amountSats?: number;
   maxFeeSats?: number;
   timeoutSecs?: number;
 }
