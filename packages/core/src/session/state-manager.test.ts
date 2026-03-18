@@ -1,113 +1,117 @@
-import { createHash } from 'node:crypto'
-import { describe, expect, it, vi } from 'vitest'
-import { InsufficientBalanceError } from '../errors.js'
-import { SessionStateManager } from './state-manager.js'
+import { createHash } from "node:crypto";
+import { describe, expect, it, vi } from "vitest";
+import { InsufficientBalanceError } from "../errors.js";
+import { SessionStateManager } from "./state-manager.js";
 
 function makePreimageAndHash(seed: number) {
-  const preimageBytes = Buffer.alloc(32)
-  preimageBytes[0] = seed
-  const preimage = preimageBytes.toString('hex')
-  const paymentHash = createHash('sha256').update(preimageBytes).digest('hex')
-  return { preimage, paymentHash }
+  const preimageBytes = Buffer.alloc(32);
+  preimageBytes[0] = seed;
+  const preimage = preimageBytes.toString("hex");
+  const paymentHash = createHash("sha256").update(preimageBytes).digest("hex");
+  return { preimage, paymentHash };
 }
 
-describe('SessionStateManager', () => {
-  it('initializes with open status and zero balance', () => {
-    const mgr = new SessionStateManager({ sessionId: 'test-1' })
-    const state = mgr.getState()
-    expect(state.sessionId).toBe('test-1')
-    expect(state.status).toBe('open')
-    expect(state.balance).toBe(0)
-    expect(state.totalDeposited).toBe(0)
-    expect(state.totalDeducted).toBe(0)
-  })
+describe("SessionStateManager", () => {
+  it("initializes with open status and zero balance", () => {
+    const mgr = new SessionStateManager({ sessionId: "test-1" });
+    const state = mgr.getState();
+    expect(state.sessionId).toBe("test-1");
+    expect(state.status).toBe("open");
+    expect(state.balance).toBe(0);
+    expect(state.totalDeposited).toBe(0);
+    expect(state.totalDeducted).toBe(0);
+  });
 
-  it('accepts deposits with valid preimage', () => {
-    const mgr = new SessionStateManager({ sessionId: 'test-2' })
-    const { preimage, paymentHash } = makePreimageAndHash(1)
+  it("accepts deposits with valid preimage", () => {
+    const mgr = new SessionStateManager({ sessionId: "test-2" });
+    const { preimage, paymentHash } = makePreimageAndHash(1);
 
-    const state = mgr.deposit({ preimage, paymentHash, amountSats: 1000 })
-    expect(state.balance).toBe(1000)
-    expect(state.totalDeposited).toBe(1000)
-    expect(state.deposits).toHaveLength(1)
-  })
+    const state = mgr.deposit({ preimage, paymentHash, amountSats: 1000 });
+    expect(state.balance).toBe(1000);
+    expect(state.totalDeposited).toBe(1000);
+    expect(state.deposits).toHaveLength(1);
+  });
 
-  it('rejects deposits with invalid preimage', () => {
-    const mgr = new SessionStateManager({ sessionId: 'test-3' })
-    const { paymentHash } = makePreimageAndHash(1)
-    const wrongPreimage = '0000000000000000000000000000000000000000000000000000000000000099'
+  it("rejects deposits with invalid preimage", () => {
+    const mgr = new SessionStateManager({ sessionId: "test-3" });
+    const { paymentHash } = makePreimageAndHash(1);
+    const wrongPreimage =
+      "0000000000000000000000000000000000000000000000000000000000000099";
 
     expect(() =>
       mgr.deposit({ preimage: wrongPreimage, paymentHash, amountSats: 1000 }),
-    ).toThrow('Invalid preimage')
-  })
+    ).toThrow("Invalid preimage");
+  });
 
-  it('deducts from balance', () => {
-    const mgr = new SessionStateManager({ sessionId: 'test-4' })
-    const { preimage, paymentHash } = makePreimageAndHash(2)
-    mgr.deposit({ preimage, paymentHash, amountSats: 1000 })
+  it("deducts from balance", () => {
+    const mgr = new SessionStateManager({ sessionId: "test-4" });
+    const { preimage, paymentHash } = makePreimageAndHash(2);
+    mgr.deposit({ preimage, paymentHash, amountSats: 1000 });
 
-    const state = mgr.deduct(400, 'api call')
-    expect(state.balance).toBe(600)
-    expect(state.totalDeducted).toBe(400)
-    expect(state.status).toBe('active')
-  })
+    const state = mgr.deduct(400, "api call");
+    expect(state.balance).toBe(600);
+    expect(state.totalDeducted).toBe(400);
+    expect(state.status).toBe("active");
+  });
 
-  it('throws InsufficientBalanceError when deducting more than balance', () => {
-    const mgr = new SessionStateManager({ sessionId: 'test-5' })
-    const { preimage, paymentHash } = makePreimageAndHash(3)
-    mgr.deposit({ preimage, paymentHash, amountSats: 100 })
+  it("throws InsufficientBalanceError when deducting more than balance", () => {
+    const mgr = new SessionStateManager({ sessionId: "test-5" });
+    const { preimage, paymentHash } = makePreimageAndHash(3);
+    mgr.deposit({ preimage, paymentHash, amountSats: 100 });
 
-    expect(() => mgr.deduct(200)).toThrow(InsufficientBalanceError)
-  })
+    expect(() => mgr.deduct(200)).toThrow(InsufficientBalanceError);
+  });
 
-  it('closes session and returns refund amount', () => {
-    const mgr = new SessionStateManager({ sessionId: 'test-6' })
-    const { preimage, paymentHash } = makePreimageAndHash(4)
-    mgr.deposit({ preimage, paymentHash, amountSats: 1000 })
-    mgr.deduct(300)
+  it("closes session and returns refund amount", () => {
+    const mgr = new SessionStateManager({ sessionId: "test-6" });
+    const { preimage, paymentHash } = makePreimageAndHash(4);
+    mgr.deposit({ preimage, paymentHash, amountSats: 1000 });
+    mgr.deduct(300);
 
-    const { refundSats, state } = mgr.close()
-    expect(refundSats).toBe(700)
-    expect(state.status).toBe('closed')
-  })
+    const { refundSats, state } = mgr.close();
+    expect(refundSats).toBe(700);
+    expect(state.status).toBe("closed");
+  });
 
-  it('prevents operations on closed sessions', () => {
-    const mgr = new SessionStateManager({ sessionId: 'test-7' })
-    const { preimage, paymentHash } = makePreimageAndHash(5)
-    mgr.deposit({ preimage, paymentHash, amountSats: 100 })
-    mgr.close()
+  it("prevents operations on closed sessions", () => {
+    const mgr = new SessionStateManager({ sessionId: "test-7" });
+    const { preimage, paymentHash } = makePreimageAndHash(5);
+    mgr.deposit({ preimage, paymentHash, amountSats: 100 });
+    mgr.close();
 
     expect(() =>
       mgr.deposit({ preimage, paymentHash, amountSats: 100 }),
-    ).toThrow('Invalid session status')
-    expect(() => mgr.deduct(10)).toThrow('Invalid session status')
-  })
+    ).toThrow("Invalid session status");
+    expect(() => mgr.deduct(10)).toThrow("Invalid session status");
+  });
 
-  it('calls onStateChange callback', () => {
-    const onChange = vi.fn()
-    const mgr = new SessionStateManager({ sessionId: 'test-8', onStateChange: onChange })
-    const { preimage, paymentHash } = makePreimageAndHash(6)
+  it("calls onStateChange callback", () => {
+    const onChange = vi.fn();
+    const mgr = new SessionStateManager({
+      sessionId: "test-8",
+      onStateChange: onChange,
+    });
+    const { preimage, paymentHash } = makePreimageAndHash(6);
 
-    mgr.deposit({ preimage, paymentHash, amountSats: 500 })
-    expect(onChange).toHaveBeenCalledTimes(1)
+    mgr.deposit({ preimage, paymentHash, amountSats: 500 });
+    expect(onChange).toHaveBeenCalledTimes(1);
 
-    mgr.deduct(100)
-    expect(onChange).toHaveBeenCalledTimes(2)
+    mgr.deduct(100);
+    expect(onChange).toHaveBeenCalledTimes(2);
 
-    mgr.close()
-    expect(onChange).toHaveBeenCalledTimes(3)
-  })
+    mgr.close();
+    expect(onChange).toHaveBeenCalledTimes(3);
+  });
 
-  it('returns deep copies from getState', () => {
-    const mgr = new SessionStateManager({ sessionId: 'test-9' })
-    const { preimage, paymentHash } = makePreimageAndHash(7)
-    mgr.deposit({ preimage, paymentHash, amountSats: 500 })
+  it("returns deep copies from getState", () => {
+    const mgr = new SessionStateManager({ sessionId: "test-9" });
+    const { preimage, paymentHash } = makePreimageAndHash(7);
+    mgr.deposit({ preimage, paymentHash, amountSats: 500 });
 
-    const state1 = mgr.getState()
-    const state2 = mgr.getState()
-    expect(state1).toEqual(state2)
-    expect(state1).not.toBe(state2)
-    expect(state1.deposits).not.toBe(state2.deposits)
-  })
-})
+    const state1 = mgr.getState();
+    const state2 = mgr.getState();
+    expect(state1).toEqual(state2);
+    expect(state1).not.toBe(state2);
+    expect(state1.deposits).not.toBe(state2.deposits);
+  });
+});

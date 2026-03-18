@@ -2,8 +2,8 @@ export {
   lightningCharge,
   lightningChargeClient,
   lightningChargeServer,
-} from './charge.js'
+} from "./charge.js";
 export type {
   LightningChallengeRequest,
   LightningCredentialPayload,
-} from './types.js'
+} from "./types.js";

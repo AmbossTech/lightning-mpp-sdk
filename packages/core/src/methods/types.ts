@@ -1,11 +1,11 @@
 export interface LightningCredentialPayload {
-  preimage: string
+  preimage: string;
 }
 
 export interface LightningChallengeRequest {
-  invoice: string
-  paymentHash: string
-  amount: string
-  currency: string
-  recipient: string
+  invoice: string;
+  paymentHash: string;
+  amount: string;
+  currency: string;
+  recipient: string;
 }
