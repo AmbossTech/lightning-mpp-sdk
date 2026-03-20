@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/AmbossTech/lightning-mpp-sdk/compare/adapter-mock-v0.1.1...adapter-mock-v0.1.2) (2026-03-20)
+
+
+### Bug Fixes
+
+* trigger initial release ([74f0593](https://github.com/AmbossTech/lightning-mpp-sdk/commit/74f059385fa40afe501876b5f7cfad0642c702af))
+
 ## [0.1.1](https://github.com/AmbossTech/lightning-mpp-sdk/compare/adapter-mock-v0.1.0...adapter-mock-v0.1.1) (2026-03-18)
 
 

@@ -1,6 +1,6 @@
 {
   "name": "@ambosstech/lightning-mpp-adapter-mock",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "repository": {
     "type": "git",
     "url": "https://github.com/AmbossTech/lightning-mpp-sdk.git",
