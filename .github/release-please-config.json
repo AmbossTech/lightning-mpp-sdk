@@ -15,13 +15,18 @@
       "release-type": "node",
       "package-name": "@ambosstech/lightning-mpp-adapter-mock",
       "component": "adapter-mock"
+    },
+    "packages/adapter-nwc": {
+      "release-type": "node",
+      "package-name": "@ambosstech/lightning-mpp-adapter-nwc",
+      "component": "adapter-nwc"
     }
   },
   "group-pull-request-title-pattern": "chore: release ${version}",
   "separate-pull-requests": false,
   "linked-versions": {
     "lightning-mpp": {
-      "components": ["sdk", "adapter-lnd", "adapter-mock"]
+      "components": ["sdk", "adapter-lnd", "adapter-mock", "adapter-nwc"]
     }
   }
 }

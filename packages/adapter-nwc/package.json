@@ -1,0 +1,36 @@
+{
+  "name": "@ambosstech/lightning-mpp-adapter-nwc",
+  "version": "0.1.1",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@ambosstech/lightning-mpp-sdk": "workspace:*",
+    "nostr-tools": "^2.10.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.0",
+    "typescript": "~5.7.0",
+    "vitest": "^2.1.0"
+  }
+}
