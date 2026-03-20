@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/AmbossTech/lightning-mpp-sdk/compare/adapter-mock-v0.2.0...adapter-mock-v0.2.1) (2026-03-20)
+
+
+### Miscellaneous
+
+* add package descriptions ([75a3532](https://github.com/AmbossTech/lightning-mpp-sdk/commit/75a353225d338b8cba42730ddd2b895561dedb2f))
+
 ## [0.2.0](https://github.com/AmbossTech/lightning-mpp-sdk/compare/adapter-mock-v0.1.1...adapter-mock-v0.2.0) (2026-03-20)
 
 

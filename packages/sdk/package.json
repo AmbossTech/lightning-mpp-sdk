@@ -1,7 +1,7 @@
 {
   "name": "@ambosstech/lightning-mpp-sdk",
   "description": "Lightning Network payment method for Machine Payments Protocol (MPP)",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/AmbossTech/lightning-mpp-sdk.git",

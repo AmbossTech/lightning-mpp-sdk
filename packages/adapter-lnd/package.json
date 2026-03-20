@@ -1,7 +1,7 @@
 {
   "name": "@ambosstech/lightning-mpp-adapter-lnd",
   "description": "LND adapter (gRPC + REST) for the Lightning MPP SDK",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/AmbossTech/lightning-mpp-sdk.git",
