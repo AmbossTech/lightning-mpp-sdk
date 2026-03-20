@@ -1,6 +1,6 @@
 {
-  "packages/sdk": "0.2.2",
-  "packages/adapter-lnd": "0.2.2",
-  "packages/adapter-mock": "0.2.2",
-  "packages/adapter-nwc": "0.2.2"
+  "packages/sdk": "0.2.3",
+  "packages/adapter-lnd": "0.2.3",
+  "packages/adapter-mock": "0.2.3",
+  "packages/adapter-nwc": "0.2.3"
 }

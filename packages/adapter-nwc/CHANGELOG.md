@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/AmbossTech/lightning-mpp-sdk/compare/adapter-nwc-v0.2.2...adapter-nwc-v0.2.3) (2026-03-20)
+
+
+### Miscellaneous
+
+* **adapter-nwc:** Synchronize lightning-mpp versions
+
 ## [0.2.2](https://github.com/AmbossTech/lightning-mpp-sdk/compare/adapter-nwc-v0.2.1...adapter-nwc-v0.2.2) (2026-03-20)
 
 
