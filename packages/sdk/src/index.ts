@@ -27,6 +27,7 @@ export {
   bytesToHex,
   hexToBase64Url,
   hexToBytes,
+  validateReturnInvoice,
   verifyPreimage,
 } from "./preimage.js";
 

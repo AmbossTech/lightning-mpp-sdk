@@ -1,6 +1,6 @@
 import { Credential, Method, Receipt, z } from "mppx";
 import type { LightningProvider } from "../provider.js";
-import { verifyPreimage } from "../preimage.js";
+import { validateReturnInvoice, verifyPreimage } from "../preimage.js";
 import { createMemoryStore, type KeyValueStore } from "../store.js";
 
 // ---------------------------------------------------------------------------
@@ -454,6 +454,10 @@ export function lightningSessionServer(options: {
             `Deposit (${depositSats} sat) is less than cost per request (${pricePerUnit} sat)`,
           );
         }
+
+        // Validate return invoice is a valid BOLT11 with no encoded amount.
+        // The spec requires the server to determine the refund amount at close.
+        validateReturnInvoice(payload.returnInvoice);
 
         const state: SessionState = {
           paymentHash: sessionId,

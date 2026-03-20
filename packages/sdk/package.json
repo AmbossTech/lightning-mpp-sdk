@@ -39,6 +39,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "light-bolt11-decoder": "^3.2.0",
     "mppx": "^0.4.7",
     "zod": "^3.24.0"
   },

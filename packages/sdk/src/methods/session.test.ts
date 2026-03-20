@@ -1,8 +1,25 @@
 import { createHash } from "node:crypto";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { LightningProvider } from "../provider.js";
 import { createMemoryStore } from "../store.js";
 import { lightningSessionServer } from "./session.js";
+
+// Mock light-bolt11-decoder so tests can use fake BOLT11 strings.
+// In real BOLT11, the HRP is "lnbc" + optional amount + "1" separator.
+// "lnbc1return" has no amount (separator "1" immediately after "lnbc").
+// "lnbc200n1deposit" has amount "200n" between "lnbc" and the "1" separator.
+vi.mock("light-bolt11-decoder", () => ({
+  decode: (bolt11: string) => {
+    // Match amount between "lnbc"/"lnbcrt" prefix and the "1" separator.
+    const match = bolt11.match(/^lnbc(?:rt)?(\d+[munp]?)1/);
+    const hasAmount = match !== null && match[1] !== "";
+    return {
+      sections: hasAmount
+        ? [{ name: "amount", letters: match![1], value: "1000" }]
+        : [],
+    };
+  },
+}));
 
 function makePreimage(seed: number) {
   const preimage = Buffer.alloc(32);
@@ -597,5 +614,46 @@ describe("lightningSessionServer", () => {
     });
 
     expect(capturedAmountSats).toBe(150);
+  });
+
+  it("rejects return invoice that encodes a non-zero amount", async () => {
+    const store = createMemoryStore();
+    const provider = makeProvider();
+    const { preimage, paymentHash } = makePreimage(12);
+
+    const method = lightningSessionServer({
+      provider,
+      store,
+      idleTimeout: 0,
+    });
+
+    await expect(
+      (method as any).verify({
+        credential: {
+          payload: {
+            action: "open",
+            preimage,
+            // This invoice has an amount encoded (200n)
+            returnInvoice: "lnbc200n1return",
+          },
+          challenge: {
+            request: {
+              amount: "10",
+              currency: "sat",
+              paymentHash,
+              depositAmount: "200",
+              depositInvoice: "lnbc200n1deposit",
+            },
+          },
+        },
+        request: {
+          amount: "10",
+          currency: "sat",
+          paymentHash,
+          depositAmount: "200",
+          depositInvoice: "lnbc200n1deposit",
+        },
+      }),
+    ).rejects.toThrow("Return invoice must not encode an amount");
   });
 });
