@@ -22,7 +22,6 @@
       "component": "adapter-nwc"
     }
   },
-  "group-pull-request-title-pattern": "chore: release ${version}",
   "separate-pull-requests": false,
   "plugins": [
     {
