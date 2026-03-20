@@ -1,8 +1,14 @@
 {
   "name": "@ambosstech/lightning-mpp-adapter-lnd",
   "description": "LND adapter (gRPC + REST) for the Lightning MPP SDK",
-  "keywords": ["lightning", "bitcoin", "lnd", "grpc", "mpp"],
-  "version": "0.2.1",
+  "keywords": [
+    "lightning",
+    "bitcoin",
+    "lnd",
+    "grpc",
+    "mpp"
+  ],
+  "version": "0.2.2",
   "repository": {
     "type": "git",
     "url": "https://github.com/AmbossTech/lightning-mpp-sdk.git",
