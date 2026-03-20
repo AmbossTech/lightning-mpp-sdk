@@ -1,6 +1,11 @@
 {
   "name": "@ambosstech/lightning-mpp-adapter-lnd",
   "version": "0.1.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AmbossTech/lightning-mpp-sdk.git",
+    "directory": "packages/adapter-lnd"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
