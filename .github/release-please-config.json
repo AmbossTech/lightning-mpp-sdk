@@ -24,9 +24,11 @@
   },
   "group-pull-request-title-pattern": "chore: release ${version}",
   "separate-pull-requests": false,
-  "linked-versions": {
-    "lightning-mpp": {
+  "plugins": [
+    {
+      "type": "linked-versions",
+      "groupName": "lightning-mpp",
       "components": ["sdk", "adapter-lnd", "adapter-mock", "adapter-nwc"]
     }
-  }
+  ]
 }
