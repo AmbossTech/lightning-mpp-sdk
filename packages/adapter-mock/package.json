@@ -1,6 +1,7 @@
 {
   "name": "@ambosstech/lightning-mpp-adapter-mock",
   "description": "Mock adapter for testing the Lightning MPP SDK without a real node",
+  "keywords": ["lightning", "bitcoin", "mock", "testing", "mpp"],
   "version": "0.2.1",
   "repository": {
     "type": "git",

@@ -1,6 +1,7 @@
 {
   "name": "@ambosstech/lightning-mpp-adapter-nwc",
   "description": "Nostr Wallet Connect (NIP-47) adapter for the Lightning MPP SDK",
+  "keywords": ["lightning", "bitcoin", "nostr", "nwc", "nip-47", "mpp"],
   "version": "0.2.1",
   "repository": {
     "type": "git",
