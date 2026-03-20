@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/AmbossTech/lightning-mpp-sdk/compare/sdk-v0.2.1...sdk-v0.2.2) (2026-03-20)
+
+
+### Bug Fixes
+
+* add package keywords to improve search ([45998ec](https://github.com/AmbossTech/lightning-mpp-sdk/commit/45998ec95fddafcb0db80482206b4f2546f50a5c))
+
 ## [0.2.1](https://github.com/AmbossTech/lightning-mpp-sdk/compare/sdk-v0.2.0...sdk-v0.2.1) (2026-03-20)
 
 
