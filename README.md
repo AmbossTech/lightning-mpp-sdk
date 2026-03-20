@@ -31,6 +31,7 @@ No external payment processor. No polling. No webhooks. The preimage _is_ the pr
 | ---------------------------------------- | ---------------------------------------------------------------- |
 | `@ambosstech/lightning-mpp-sdk`         | Core SDK — method definitions, provider interface, store, errors |
 | `@ambosstech/lightning-mpp-adapter-lnd`  | LND adapter — gRPC and REST transports                           |
+| `@ambosstech/lightning-mpp-adapter-nwc`  | NWC adapter — Nostr Wallet Connect (NIP-47) over relays         |
 | `@ambosstech/lightning-mpp-adapter-mock` | Mock adapter — for testing without a real Lightning node         |
 
 ## Quick start
@@ -40,6 +41,9 @@ No external payment processor. No polling. No webhooks. The preimage _is_ the pr
 ```bash
 # Core + LND adapter
 pnpm add @ambosstech/lightning-mpp-sdk @ambosstech/lightning-mpp-adapter-lnd mppx
+
+# Or core + NWC adapter (Alby Hub, coinos, Primal, etc.)
+pnpm add @ambosstech/lightning-mpp-sdk @ambosstech/lightning-mpp-adapter-nwc mppx
 
 # Or core + mock for testing
 pnpm add @ambosstech/lightning-mpp-sdk @ambosstech/lightning-mpp-adapter-mock mppx
@@ -281,6 +285,29 @@ const provider = new LndLightningProvider({
 });
 ```
 
+## NWC adapter configuration
+
+Connect to any [Nostr Wallet Connect](https://github.com/nostr-protocol/nips/blob/master/47.md) (NIP-47) compatible wallet using a connection string:
+
+```ts
+import { NwcLightningProvider } from "@ambosstech/lightning-mpp-adapter-nwc";
+
+const provider = new NwcLightningProvider({
+  connectionString: "nostr+walletconnect://pubkey?relay=wss://relay.example.com&secret=hex",
+  timeoutSecs: 60, // optional, default 60
+});
+
+// Use like any other provider
+const invoice = await provider.createInvoice({ amountSats: 1000, memo: "test" });
+
+// Clean up when done
+provider.close();
+```
+
+The connection string is typically provided by your wallet (Alby Hub, coinos, Primal, etc.). It contains the wallet pubkey, relay URL, and client secret. All communication is encrypted with NIP-44.
+
+> **Note:** NWC does not support `maxFeeSats` — fee limits are controlled by the wallet. If provided, it will be ignored with a warning.
+
 ## Provider interface
 
 Implement `LightningProvider` to add support for any Lightning node or wallet:
@@ -463,6 +490,7 @@ lightning-mpp-sdk/
 │   │       ├── errors.ts    # Typed error classes
 │   │       └── preimage.ts  # Crypto utilities (sha256 verification, hex/base64)
 │   ├── adapter-lnd/         # LND adapter (gRPC + REST)
+│   ├── adapter-nwc/         # NWC adapter (Nostr Wallet Connect)
 │   └── adapter-mock/        # Mock adapter for testing
 ├── package.json             # Workspace root
 ├── pnpm-workspace.yaml
