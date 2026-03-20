@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/AmbossTech/lightning-mpp-sdk/compare/sdk-v0.1.1...sdk-v0.2.0) (2026-03-20)
+
+
+### Bug Fixes
+
+* trigger initial release ([74f0593](https://github.com/AmbossTech/lightning-mpp-sdk/commit/74f059385fa40afe501876b5f7cfad0642c702af))
+
 ## [0.1.1](https://github.com/AmbossTech/lightning-mpp-sdk/compare/sdk-v0.1.0...sdk-v0.1.1) (2026-03-18)
 
 
