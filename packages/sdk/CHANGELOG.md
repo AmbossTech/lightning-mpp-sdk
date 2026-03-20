@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/AmbossTech/lightning-mpp-sdk/compare/sdk-v0.2.2...sdk-v0.2.3) (2026-03-20)
+
+
+### Bug Fixes
+
+* check invoice amount for refund ([0be5fd3](https://github.com/AmbossTech/lightning-mpp-sdk/commit/0be5fd345992c5ac66121431a6e335facbfdf50b))
+
 ## [0.2.2](https://github.com/AmbossTech/lightning-mpp-sdk/compare/sdk-v0.2.1...sdk-v0.2.2) (2026-03-20)
 
 
